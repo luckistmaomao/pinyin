@@ -233,6 +233,7 @@ class SyllableGraph(Graph):
         super(SyllableGraph,self).__init__()
         self.pinyin_string = string
         self.valid_syllables = syllables
+        self.validity = True
         self.pinyin_sequence = list()
         self.pinyin_sequences = list()
         self.MakeGraph();
@@ -259,7 +260,10 @@ class SyllableGraph(Graph):
 
         venddata = self.vertex[self.vertex_count-1].data
         if not venddata.accessed_forward:
-            raise Exception("InvalidSyllable")
+            print "wrong pinyin"
+            self.validity = False
+            return 
+            #raise Exception("InvalidSyllable")
         
         self.SearchBackward(self.vertex[self.vertex_count-1])
 
@@ -320,7 +324,6 @@ class SyllableGraph(Graph):
             if limit > 1:
                 self.MakePinyinSequence(e.to,limit-1,f)
 
-            print self.pinyin_sequence
             self.pinyin_sequence.pop(len(self.pinyin_sequence)- 1)
             
 
@@ -556,18 +559,32 @@ class PinYinModel(object):
     def MakeSentences(self):
         return self.slm_graph.MakeSentence()
 
-
-
-def main():
-    pym = PinYinModel()
-    string = "suzhoudaxue"
+def search(pym,string):
     pym.ParsePinyinString(string)
     pym.MakeLexiconGraph()
     pym.MakeSLMGraph(3)
-    a = pym.MakeSentences()
-    for i in a:
-        print i.sentence
-        print i.probability
+    solutions = pym.MakeSentences()
+    results = []
+    if pym.syllable_graph.validity:
+        for solution in solutions:
+            results.append(solution.sentence)
+    return results
+
+def main():
+    pym = PinYinModel()
+    string = "suzhou"
+    #pym.ParsePinyinString(string)
+    #pym.MakeLexiconGraph()
+    #pym.MakeSLMGraph(3)
+    #a = pym.MakeSentences()
+    #if pym.syllable_graph.validity:
+    #    for i in a:
+    #        print i.sentence
+    #else:
+    #    print "None"
+    results = search(pym,string)
+    for i in results:
+        print i
 
 
 if __name__ == "__main__":
